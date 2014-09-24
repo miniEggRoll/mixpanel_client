@@ -5,7 +5,7 @@
   "author": "aaron",
   "contributors": [{"name": "foo", "email":"bar@foo.com"}],
   "bin":{
-    "mixpanel_client": "./bin/mixpanel_client"
+    "mixpanel_client": "./.bin/mixpanel_client"
     },
   "scripts": {
     "start": "node lib/export.js",
