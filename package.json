@@ -38,5 +38,9 @@
   },
   "preferGlobal": false,
   "private": true,
-  "license": "ISC"
+  "license": "ISC",
+  "homepage":"https://github.com/mrsquid0126/mixpanel_client",
+  "engines":{
+    "node": "v0.10"
+  }
 }
