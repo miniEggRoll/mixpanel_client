@@ -2,12 +2,13 @@ Q                       = require 'q'
 request                 = require 'request'
 _                       = require 'underscore'
 moment                  = require 'moment'
-debug                   = require('debug') 'test'
+debug                   = require('debug') 'mixpanel:export'
 crypto                  = require 'crypto'
 querystring             = require 'querystring'
 {secret, api_key}       = require '../config'
 
 host = 'http://mixpanel.com/api/2.0'
+rawhost = 'https://data.mixpanel.com/api/2.0'
 expire = Math.round(new Date().valueOf()/1000 + 100)
 
 signature = (secret, params)->
@@ -39,7 +40,24 @@ generateParam = ({required, optional})->
     .value()
 
 
-
+exports.raw = ({from_date, to_date, event, expression, bucket})->
+    from_date = moment(from_date).format 'YYYY-MM-DD'
+    to_date = moment(to_date).format 'YYYY-MM-DD'
+    required = {from_date, to_date}
+    optional = {event, bucket}
+    params = generateParam {required, optional}
+    _.extend params, expression
+    url = "#{rawhost}/export?" + qs params
+    Q.Promise (resolve, reject, notify)->
+        request {url}, (err, msg, body)->
+            if err then reject err
+            else 
+                result = _.chain body.split '\n'
+                .compact()
+                .map JSON.parse
+                .value()
+                resolve result
+                    
 
 exports.events =
     events: ({event, type, unit, interval})->
