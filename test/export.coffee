@@ -6,7 +6,7 @@ debug                       = require('debug') 'test'
 moment                      = require 'moment'
 _                           = require 'underscore'
 
-{annotations, events, eventProp, funnels, segmentation, retention, engage} = _export
+{annotations, events, eventProp, funnels, segmentation, retention, engage, raw} = _export
 
 describe 'export', ->
     timestamp = eventName = distinct_id = today = null
@@ -15,6 +15,17 @@ describe 'export', ->
         eventName = "test_#{timestamp}"
         today = moment().format 'YYYY-MM-DD'
         distinct_id = "profile_#{timestamp}"
+
+    describe 'raw', ->
+        it 'export raw event', ->
+            raw {
+                from_date: moment().subtract(1, 'week').toDate()
+                to_date: new Date()
+            }
+            .then (events)->
+                _.each events, ({event, properties})->
+                    assert.isString event
+                    assert.isObject properties
 
     describe 'annotations', ->
         it 'create annotations', ->
