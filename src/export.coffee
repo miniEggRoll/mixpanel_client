@@ -5,7 +5,7 @@ moment                  = require 'moment'
 debug                   = require('debug') 'mixpanel:export'
 crypto                  = require 'crypto'
 querystring             = require 'querystring'
-{secret, api_key}       = require '../config'
+
 
 host = 'http://mixpanel.com/api/2.0'
 rawhost = 'https://data.mixpanel.com/api/2.0'
@@ -25,7 +25,7 @@ signature = (secret, params)->
     md5.digest 'hex'
 
 qs = (params = {})->
-    params.sig = signature secret, _.extend(params, {api_key, expire})
+    params.sig = signature @secret, _.extend(params, {@api_key, expire})
     querystring.stringify params
 
 req = (reqOpt)->
@@ -39,19 +39,8 @@ generateParam = ({required, optional})->
     .extend required
     .value()
 
-
-exports.raw = ({from_date, to_date, event, expression, bucket})->
-    from_date = moment(from_date).format 'YYYY-MM-DD'
-    to_date = moment(to_date).format 'YYYY-MM-DD'
-    required = {from_date, to_date}
-    optional = {event, bucket}
-    params = generateParam {required, optional}
-    _.extend params, expression
-    url = "#{rawhost}/export?" + qs params
-    request {url}
-                    
-
-exports.events =
+class events
+    constructor: ({@secret, @api_key})->
     events: ({event, type, unit, interval})->
         format = 'json'
         throw {message: 'event must be string array'} unless _.isArray event
@@ -63,22 +52,23 @@ exports.events =
         required = {event, type, unit, interval}
         optional = {format}
         params = generateParam {required, optional}
-        url = "#{host}/events/?" + qs params
+        url = "#{host}/events/?" + qs.call @, params
         req {url}
     top: ({type, limit})->
         required = {type}
         optional = {limit}
         params = generateParam {required, optional}
-        url = "#{host}/events/top?" + qs params
+        url = "#{host}/events/top?" + qs.call @, params
         req {url}
     names: ({type, limit})->
         required = {type}
         optional = {limit}
         params = generateParam {required, optional}
-        url = "#{host}/events/names?" + qs params
+        url = "#{host}/events/names?" + qs.call @, params
         req {url}
 
-exports.eventProp = 
+class eventProp
+    constructor: ({@secret, @api_key})->
     properties: ({event, name, values, type, unit, interval, limit})->
         throw {message: 'values must be string array'} unless _.isArray(values) or _.isUndefined(values)
         format = 'json'
@@ -90,22 +80,23 @@ exports.eventProp =
         required = {event, type, name, unit, interval}
         optional = {limit, values, format}
         params = generateParam {required, optional}
-        url = "#{host}/events/properties?" + qs params
+        url = "#{host}/events/properties?" + qs.call @, params
         req {url}
     top: ({event, limit})->
         required = {event}
         optional = {limit}
         params = generateParam {required, optional}
-        url = "#{host}/events/properties/top?" + qs params
+        url = "#{host}/events/properties/top?" + qs.call @, params
         req {url}
     values: ({event, name, limit, bucket})->
         required = {event, name}
         optional = {limit, bucket}
         params = generateParam {required, optional}
-        url = "#{host}/events/properties/values?" + qs params
+        url = "#{host}/events/properties/values?" + qs.call @, params
         req {url}
 
-exports.funnels = 
+class funnels
+    constructor: ({@secret, @api_key})->
     # funnel: ({funnel_id, from_date, to_date, length, interval, unit, _on, where, limit})->
     #     required = {funnel_id}
     #     optional = {from_date, to_date, length, interval, unit, _on, where, limit}
@@ -113,35 +104,37 @@ exports.funnels =
     #     url = "#{host}/funnels/?" + qs params
     #     req {url}
     list: ->
-        url = "#{host}/funnels/list?" + qs()
+        url = "#{host}/funnels/list?" + qs.call @
         req {url}
 
-exports.annotations = 
+class annotations
+    constructor: ({@secret, @api_key})->
     list: ({from_date, to_date})->
         params = 
             from_date: moment(from_date).format 'YYYY-MM-DD'
             to_date: moment(to_date).format 'YYYY-MM-DD'
-        url = "#{host}/annotations/?" + qs params
+        url = "#{host}/annotations/?" + qs.call @, params
         req {url}
     create: ({date, description})->
         params = 
             date: moment(date).format 'YYYY-MM-DD HH:mm:ss'
             description: description
-        url = "#{host}/annotations/create?" + qs params
+        url = "#{host}/annotations/create?" + qs.call @, params
         req {url}
     update: ({id, date, description})->
         params =
             id: id
             date: moment(date).format 'YYYY-MM-DD HH:mm:ss'
             description: description
-        url = "#{host}/annotations/update?" + qs params
+        url = "#{host}/annotations/update?" + qs.call @, params
         req {url}
     delete: (id)->
         params = {id}
-        url = "#{host}/annotations/delete?" + qs params
+        url = "#{host}/annotations/delete?" + qs.call @, params
         req {url}
 
-exports.segmentation = 
+class segmentation
+    constructor: ({@secret, @api_key})->
     segmentation: ({event, from_date, to_date, unit, limit, type, expression})->
         required = 
             event: event
@@ -154,7 +147,7 @@ exports.segmentation =
             type: type
         params = generateParam {required, optional}
         _.extend params, expression
-        url = "#{host}/segmentation?" + qs params
+        url = "#{host}/segmentation?" + qs.call @, params
         req {url}
     numeric: ({event, from_date, to_date, unit, type, expression})->
         required = 
@@ -166,7 +159,7 @@ exports.segmentation =
             type: type
         params = generateParam {required, optional}
         _.extend params, expression
-        url = "#{host}/segmentation/numeric?" + qs params
+        url = "#{host}/segmentation/numeric?" + qs.call @, params
         req {url}
     sum: ({event, from_date, to_date, unit, expression})->
         required = 
@@ -177,7 +170,7 @@ exports.segmentation =
             unit: unit
         params = generateParam {required, optional}
         _.extend params, expression
-        url = "#{host}/segmentation/sum?" + qs params
+        url = "#{host}/segmentation/sum?" + qs.call @, params
         req {url}
     average: ({event, from_date, to_date, unit, expression})->
         required = 
@@ -188,30 +181,51 @@ exports.segmentation =
             unit:unit
         params = generateParam {required, optional}
         _.extend params, expression
-        url = "#{host}/segmentation/average?" + qs params
+        url = "#{host}/segmentation/average?" + qs.call @, params
         req {url}
 
-exports.retention = ({from_date, to_date, retention_type, born_event, event, interval, interval_count, unit, limit, expression})->
-    required = 
-        from_date: moment(from_date).format 'YYYY-MM-DD'
-        to_date: moment(to_date).format 'YYYY-MM-DD'
-    optional = {
-        retention_type
-        born_event
-        event
-        interval
-        interval_count
-        unit
-        limit
-    }
-    params = generateParam {required, optional}
-    _.extend params, expression    
-    url = "#{host}/retention?" + qs params
-    req {url}
+class mp
+    constructor: (config)->
+        {@secret, @api_key} = config
+        @events = new events config
+        @eventProp = new eventProp config
+        @funnels = new funnels config
+        @annotations = new annotations config
+        @segmentation = new segmentation config
+    raw: ({from_date, to_date, event, expression, bucket}, cb)=>
+        from_date = moment(from_date).format 'YYYY-MM-DD'
+        to_date = moment(to_date).format 'YYYY-MM-DD'
+        required = {from_date, to_date}
+        optional = {event, bucket}
+        params = generateParam {required, optional}
+        _.extend params, expression
+        url = "#{rawhost}/export?" + qs.call @, params
+        if cb and _.isFunction cb
+            request {url}, cb
+        else request {url}
+    retention: ({from_date, to_date, retention_type, born_event, event, interval, interval_count, unit, limit, expression})=>
+        required = 
+            from_date: moment(from_date).format 'YYYY-MM-DD'
+            to_date: moment(to_date).format 'YYYY-MM-DD'
+        optional = {
+            retention_type
+            born_event
+            event
+            interval
+            interval_count
+            unit
+            limit
+        }
+        params = generateParam {required, optional}
+        _.extend params, expression    
+        url = "#{host}/retention?" + qs.call @, params
+        req {url}
+    engage: ({where, session_id, page, distinct_id})=>
+        required = {}
+        optional = {distinct_id, where, session_id, page}
+        params = generateParam {required, optional}
+        url = "#{host}/engage/?" + qs.call @, params
+        req {url}
 
-exports.engage = ({where, session_id, page, distinct_id})->
-    required = {}
-    optional = {distinct_id, where, session_id, page}
-    params = generateParam {required, optional}
-    url = "#{host}/engage/?" + qs params
-    req {url}
+
+module.exports = (config)-> new mp config
