@@ -48,15 +48,7 @@ exports.raw = ({from_date, to_date, event, expression, bucket})->
     params = generateParam {required, optional}
     _.extend params, expression
     url = "#{rawhost}/export?" + qs params
-    Q.Promise (resolve, reject, notify)->
-        request {url}, (err, msg, body)->
-            if err then reject err
-            else 
-                result = _.chain body.split '\n'
-                .compact()
-                .map JSON.parse
-                .value()
-                resolve result
+    request {url}
                     
 
 exports.events =
