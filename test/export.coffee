@@ -5,8 +5,9 @@ _export                     = require '../src/export'
 debug                       = require('debug') 'test'
 moment                      = require 'moment'
 _                           = require 'underscore'
+config                      = require '../config'
 
-{annotations, events, eventProp, funnels, segmentation, retention, engage, raw} = _export
+{annotations, events, eventProp, funnels, segmentation, retention, engage, raw} = _export config
 
 describe 'export', ->
     timestamp = eventName = distinct_id = today = null
@@ -17,15 +18,21 @@ describe 'export', ->
         distinct_id = "profile_#{timestamp}"
 
     describe 'raw', ->
-        it 'export raw event', ->
-            raw {
+        it 'export raw event', (done)->
+            opt =
                 from_date: moment().subtract(1, 'week').toDate()
                 to_date: new Date()
-            }
-            .then (events)->
-                _.each events, ({event, properties})->
+
+            raw opt, (err, msg, body)->
+                result = _.chain body.split('\n')
+                .compact()
+                .map JSON.parse
+                .value()
+
+                _.each result, ({event, properties})->
                     assert.isString event
                     assert.isObject properties
+                do done
 
     describe 'annotations', ->
         it 'create annotations', ->
