@@ -18,21 +18,21 @@ describe 'export', ->
         distinct_id = "profile_#{timestamp}"
 
     describe 'raw', ->
-        it 'export raw event', (done)->
-            opt =
-                from_date: moment().subtract(1, 'week').toDate()
-                to_date: new Date()
+        it 'export raw event'#, (done)->
+            # opt =
+            #     from_date: moment().subtract(1, 'week').toDate()
+            #     to_date: new Date()
 
-            raw opt, (err, msg, body)->
-                result = _.chain body.split('\n')
-                .compact()
-                .map JSON.parse
-                .value()
+            # raw opt, (err, msg, body)->
+            #     result = _.chain body.split('\n')
+            #     .compact()
+            #     .map JSON.parse
+            #     .value()
 
-                _.each result, ({event, properties})->
-                    assert.isString event
-                    assert.isObject properties
-                do done
+            #     _.each result, ({event, properties})->
+            #         assert.isString event
+            #         assert.isObject properties
+            #     do done
 
     describe 'annotations', ->
         it 'create annotations', ->
@@ -135,26 +135,26 @@ describe 'export', ->
                 assert.isArray result
     
     describe 'funnels', ->
-        it 'return data from a funnel' #, ->
-            # funnels.funnel {
-            #     funnel_id: 1
-            #     from_date: new Date()
-            #     to_date: new Date()
-            #     length: 1
-            #     interval: 2
-            #     unit: 'day'
-            # }
-            # .then (result)->
-            #     debug result
-            #     {data, meta: {dates}} = result['Signup flow']
-            #     _.each data, assert.isObject
-            #     assert.isArray dates
-
         it 'list funnels', ->
             funnels.list()
             .then (result)->
                 assert.isArray result
                 _.each result, assert.isObject
+        it 'return data from a funnel', ->
+            funnels.list()
+            .then ([{funnel_id, name}])->
+                funnels.funnel {
+                    funnel_id: funnel_id
+                    from_date: new Date()
+                    to_date: new Date()
+                    length: 1
+                    unit: 'day'
+                }
+                .then (result)->
+                    {data, meta: {dates}} = result
+                    _.each data, assert.isObject
+                    assert.isArray dates
+
 
     describe 'segmentation', ->
         it 'return segmented data of single event', ->
