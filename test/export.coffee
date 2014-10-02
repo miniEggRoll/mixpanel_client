@@ -18,21 +18,36 @@ describe 'export', ->
         distinct_id = "profile_#{timestamp}"
 
     describe 'raw', ->
-        it 'export raw event'#, (done)->
-            # opt =
-            #     from_date: moment().subtract(1, 'week').toDate()
-            #     to_date: new Date()
+        opt =
+            from_date: moment().subtract(1, 'day').toDate()
+            to_date: new Date()
+        @timeout 20000
+        it 'return raw data stream', (done)->
+            body = ''
+            raw opt
+            .on 'data', (chunk)->
+                body += chunk.toString()
+            .on 'complete', ->
+                result = _.chain body.split('\n')
+                .compact()
+                .map JSON.parse
+                .value()
 
-            # raw opt, (err, msg, body)->
-            #     result = _.chain body.split('\n')
-            #     .compact()
-            #     .map JSON.parse
-            #     .value()
+                _.each result, ({event, properties})->
+                    assert.isString event
+                    assert.isObject properties
+                do done
+        it 'export raw event', (done)->
+            raw opt, (err, msg, body)->
+                result = _.chain body.split('\n')
+                .compact()
+                .map JSON.parse
+                .value()
 
-            #     _.each result, ({event, properties})->
-            #         assert.isString event
-            #         assert.isObject properties
-            #     do done
+                _.each result, ({event, properties})->
+                    assert.isString event
+                    assert.isObject properties
+                do done
 
     describe 'annotations', ->
         it 'create annotations', ->
