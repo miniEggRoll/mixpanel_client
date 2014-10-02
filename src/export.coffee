@@ -97,12 +97,14 @@ class eventProp
 
 class funnels
     constructor: ({@secret, @api_key})->
-    # funnel: ({funnel_id, from_date, to_date, length, interval, unit, _on, where, limit})->
-    #     required = {funnel_id}
-    #     optional = {from_date, to_date, length, interval, unit, _on, where, limit}
-    #     params = generateParam {required, optional}
-    #     url = "#{host}/funnels/?" + qs params
-    #     req {url}
+    funnel: ({funnel_id, from_date, to_date, length, interval, unit, _on, where, limit})->
+        from_date = moment(from_date).format 'YYYY-MM-DD'
+        to_date = moment(to_date).format 'YYYY-MM-DD'
+        required = {funnel_id}
+        optional = {from_date, to_date, length, interval, unit, _on, where, limit}
+        params = generateParam {required, optional}
+        url = "#{host}/funnels?" + qs.call @, params
+        req {url}
     list: ->
         url = "#{host}/funnels/list?" + qs.call @
         req {url}
