@@ -108,6 +108,12 @@ class funnels
     list: ->
         url = "#{host}/funnels/list?" + qs.call @
         req {url}
+    getByName: (options)->
+        {name} = options
+        @list().then (list)=>
+            {funnel_id} = _.findWhere list, {name}
+            options.funnel_id = funnel_id
+            @funnel options
 
 class annotations
     constructor: ({@secret, @api_key})->

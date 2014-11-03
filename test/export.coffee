@@ -169,6 +169,21 @@ describe 'export', ->
                     {data, meta: {dates}} = result
                     _.each data, assert.isObject
                     assert.isArray dates
+        it 'return data from a funnel by funnel name', ->
+            funnels.list()
+            .then ([{funnel_id, name}])->
+                funnels.getByName {
+                    name: name
+                    from_date: new Date()
+                    to_date: new Date()
+                    length: 1
+                    unit: 'day'
+                }
+            .then (result)->
+                {data, meta: {dates}} = result
+                _.each data, assert.isObject
+                assert.isArray dates
+
 
 
     describe 'segmentation', ->
