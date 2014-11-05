@@ -22,3 +22,8 @@ project = mp config
 - funnels
 - annotations 
 - segmentation
+- retention
+- engage
+- raw
+
+For detail documentations check offical [doc](https://mixpanel.com/docs/api-documentation/data-export-api)
